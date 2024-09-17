@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Tareas</title>
+    <title>Lista de Tareas con Desplazamiento</title>
     <style>
+        /* Los estilos básicos */
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
@@ -42,24 +43,36 @@
             padding: 0;
         }
         .task-item {
-            padding: 10px;
+            padding: 15px;
             background-color: #f9f9f9;
             border-bottom: 1px solid #ddd;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        .delete-button {
+            position: absolute;
+            right: -100px;
+            top: 0;
+            height: 100%;
+            width: 100px;
+            background-color: red;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: right 0.3s ease;
+        }
+        .task-item.swiped .delete-button {
+            right: 0;
         }
         .completed {
             text-decoration: line-through;
             color: #888;
-        }
-        .delete-button {
-            background-color: red;
-            color: white;
-            border: none;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 5px;
         }
     </style>
 </head>
@@ -74,15 +87,11 @@
 </div>
 
 <script>
-    // Array para almacenar las tareas
     let tasks = [];
-
-    // Referencias a los elementos HTML
     const taskInput = document.getElementById('taskInput');
     const addTaskButton = document.getElementById('addTaskButton');
     const taskList = document.getElementById('taskList');
 
-    // Función para añadir una nueva tarea
     function addTask() {
         const taskText = taskInput.value.trim();
         if (taskText !== '') {
@@ -93,7 +102,6 @@
         }
     }
 
-    // Función para renderizar la lista de tareas
     function renderTasks() {
         taskList.innerHTML = '';
         tasks.forEach(task => {
@@ -102,13 +110,38 @@
             if (task.completed) taskItem.classList.add('completed');
             taskItem.innerHTML = `
                 <span onclick="toggleTask(${task.id})">${task.text}</span>
-                <button class="delete-button" onclick="deleteTask(${task.id})">Eliminar</button>
+                <div class="delete-button" onclick="deleteTask(${task.id})">Eliminar</div>
             `;
             taskList.appendChild(taskItem);
+
+            let swiped = false;
+            taskItem.addEventListener('touchstart', (e) => {
+                swiped = false;
+                const touch = e.touches[0];
+                const startX = touch.clientX;
+
+                taskItem.addEventListener('touchmove', (e) => {
+                    const touchMove = e.touches[0];
+                    const diffX = touchMove.clientX - startX;
+                    if (diffX > 50) {
+                        taskItem.style.transform = `translateX(${diffX}px)`;
+                    }
+                    if (diffX > 150) {
+                        taskItem.classList.add('swiped');
+                        swiped = true;
+                    }
+                });
+
+                taskItem.addEventListener('touchend', () => {
+                    if (!swiped) {
+                        taskItem.style.transform = 'translateX(0)';
+                        taskItem.classList.remove('swiped');
+                    }
+                });
+            });
         });
     }
 
-    // Función para marcar o desmarcar una tarea
     function toggleTask(id) {
         tasks = tasks.map(task => 
             task.id === id ? { ...task, completed: !task.completed } : task
@@ -116,13 +149,11 @@
         renderTasks();
     }
 
-    // Función para eliminar una tarea
     function deleteTask(id) {
         tasks = tasks.filter(task => task.id !== id);
         renderTasks();
     }
 
-    // Evento de clic para añadir tareas
     addTaskButton.addEventListener('click', addTask);
     taskInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') addTask();
