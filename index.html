@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Tareas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .task-input {
+            width: calc(100% - 50px);
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .add-button {
+            width: 40px;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .task-list {
+            list-style: none;
+            padding: 0;
+        }
+        .task-item {
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .completed {
+            text-decoration: line-through;
+            color: #888;
+        }
+        .delete-button {
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Lista de Tareas</h1>
+    <input type="text" id="taskInput" class="task-input" placeholder="Escribe una tarea...">
+    <button id="addTaskButton" class="add-button">+</button>
+
+    <ul id="taskList" class="task-list"></ul>
+</div>
+
+<script>
+    // Array para almacenar las tareas
+    let tasks = [];
+
+    // Referencias a los elementos HTML
+    const taskInput = document.getElementById('taskInput');
+    const addTaskButton = document.getElementById('addTaskButton');
+    const taskList = document.getElementById('taskList');
+
+    // Función para añadir una nueva tarea
+    function addTask() {
+        const taskText = taskInput.value.trim();
+        if (taskText !== '') {
+            const task = { id: Date.now(), text: taskText, completed: false };
+            tasks.push(task);
+            renderTasks();
+            taskInput.value = '';
+        }
+    }
+
+    // Función para renderizar la lista de tareas
+    function renderTasks() {
+        taskList.innerHTML = '';
+        tasks.forEach(task => {
+            const taskItem = document.createElement('li');
+            taskItem.className = 'task-item';
+            if (task.completed) taskItem.classList.add('completed');
+            taskItem.innerHTML = `
+                <span onclick="toggleTask(${task.id})">${task.text}</span>
+                <button class="delete-button" onclick="deleteTask(${task.id})">Eliminar</button>
+            `;
+            taskList.appendChild(taskItem);
+        });
+    }
+
+    // Función para marcar o desmarcar una tarea
+    function toggleTask(id) {
+        tasks = tasks.map(task => 
+            task.id === id ? { ...task, completed: !task.completed } : task
+        );
+        renderTasks();
+    }
+
+    // Función para eliminar una tarea
+    function deleteTask(id) {
+        tasks = tasks.filter(task => task.id !== id);
+        renderTasks();
+    }
+
+    // Evento de clic para añadir tareas
+    addTaskButton.addEventListener('click', addTask);
+    taskInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addTask();
+    });
+</script>
+
+</body>
+</html>
